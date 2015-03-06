@@ -1,4 +1,4 @@
 cron:
 - description: atualizar bicicletarios
   url: /update
-  schedule: every 1 mins
+  schedule: every 5 mins from 9:00 to 01:00

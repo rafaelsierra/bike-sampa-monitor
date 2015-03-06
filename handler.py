@@ -24,7 +24,7 @@ class MainPage(webapp2.RequestHandler):
         estacoes = Estacao.query(Estacao.data == hoje).order(Estacao.numero)
 
         template_values = {
-            'estacoes': estacoes.fetch(),
+            'estacoes': estacoes.fetch(batch_size=200),
             'last_update': memcache.get('last-update')
         }
         template = jinjao.get_template('index.html')

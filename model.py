@@ -12,10 +12,10 @@ logger = logging.getLogger('models')
 
 class Estacao(ndb.Model):
     local = ndb.GeoPtProperty()
-    nome = ndb.TextProperty()
-    endereco = ndb.TextProperty()
+    nome = ndb.StringProperty()
+    endereco = ndb.StringProperty()
     numero = ndb.IntegerProperty()
-    status = ndb.TextProperty()
+    status = ndb.StringProperty()
     funcionando = ndb.BooleanProperty()
     bicicletas = ndb.IntegerProperty(default=0)
     vagas = ndb.IntegerProperty(default=0)
@@ -52,7 +52,9 @@ class Estacao(ndb.Model):
             return
         hoje = datetime.date.today()
         helper = lambda s, b, e: s.strip()[b:e]
+        estacoes = []
 
+        todas_estacoes = Estacao.query(Estacao.data==hoje).fetch(batch_size=200)
         for funcao in funcoes:
             lat = helper(funcao[0],18,-2)
             lon = helper(funcao[1],1,-2)
@@ -64,7 +66,12 @@ class Estacao(ndb.Model):
             vagas = int(helper(funcao[8], 1, -2))
             endereco = helper(funcao[9], 1, -3)
 
-            estacao = Estacao.query(cls.data==hoje, cls.numero==numero).get()
+            estacao = None
+            for e in todas_estacoes:
+                if e.numero == numero:
+                    estacao = e
+                    break
+            
             if not estacao:
                 estacao = Estacao(numero=numero, data=hoje)
 
@@ -88,7 +95,11 @@ class Estacao(ndb.Model):
                     status = u'Offline'
             estacao.status = status
             estacao.funcionando = operando
-            estacao.put()
+            estacoes.append(estacao)
+
+            if len(estacoes) >= 100:
+                ndb.put_multi(estacoes)
+                estacoes = []
         memcache.set('last-update', datetime.datetime.now())
         memcache.delete('home-html')
 

@@ -37,9 +37,9 @@ class UpdateData(webapp2.RequestHandler):
     def get(self):
         Estacao.update_data()
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write('done')          
+        self.response.write('done')
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/update', UpdateData),
-], debug=True)
+], debug=False)

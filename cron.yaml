@@ -1,0 +1,4 @@
+cron:
+- description: atualizar bicicletarios
+  url: /update
+  schedule: every 1 mins

@@ -19,7 +19,7 @@ class MainPage(webapp2.RequestHandler):
         if html:
             self.response.write(html)
             return
-            
+
         hoje = datetime.date.today()
         estacoes = Estacao.query(Estacao.data == hoje).order(Estacao.numero)
 
@@ -28,7 +28,9 @@ class MainPage(webapp2.RequestHandler):
             'last_update': memcache.get('last-update')
         }
         template = jinjao.get_template('index.html')
-        self.response.write(template.render(template_values))
+        html = template.render(template_values)
+        memcache.set('home-html', html)
+        self.response.write(html)
 
 
 class UpdateData(webapp2.RequestHandler):

@@ -89,7 +89,7 @@ class Estacao(ndb.Model):
             estacao.status = status
             estacao.funcionando = operando
             estacao.put()
-
+        memcache.set('last-update', datetime.datetime.now())
         memcache.delete('home-html')
 
 

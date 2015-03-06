@@ -3,7 +3,7 @@ import webapp2
 import jinja2
 import os
 import datetime
-
+from google.appengine.api import memcache
 from model import Estacao
 
 jinjao = jinja2.Environment(
@@ -17,9 +17,10 @@ class MainPage(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         hoje = datetime.date.today()
         estacoes = Estacao.query(Estacao.data == hoje).order(Estacao.numero)
-        
+
         template_values = {
             'estacoes': estacoes.fetch(),
+            'last_update': memcache.get('last-update')
         }
         template = jinjao.get_template('index.html')
         self.response.write(template.render(template_values))

@@ -15,6 +15,11 @@ jinjao = jinja2.Environment(
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
+        html = memcache.get('home-html')
+        if html:
+            self.response.write(html)
+            return
+            
         hoje = datetime.date.today()
         estacoes = Estacao.query(Estacao.data == hoje).order(Estacao.numero)
 

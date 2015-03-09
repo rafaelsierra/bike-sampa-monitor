@@ -13,7 +13,7 @@
 
     <h1>Gráfico de uso de hoje</h1>
     <p><small>Última atualização: {{last_update}}</small></p>
-    <div id="chart"></div>
+    <div id="chart" style="width: 100%; height: 500px;"></div>
     <h1>Lista de estações</h1>
     <table class="table table-striped table-hover">
         <thead>
@@ -28,11 +28,12 @@
         </thead>
         <tbody>
             {% for estacao in estacoes %}
-                <tr class="
+                <tr class="estacao 
                     {% if estacao.funcionando and estacao.bicicletas == 0 %}warning{% endif %}
                     {% if estacao.funcionando and estacao.bicicletas > 0 %}success{% endif %}
                     {% if not estacao.funcionando %}danger{% endif %}                    
-                    ">
+                    " data-local="{{estacao.local}}" data-numero="{{estacao.numero}}"
+                        data-bicicletas="{{estacao.bicicletas}}" data-viagens="{{estacao.interacoes}}">
                     <td align="right"><strong>{{estacao.numero}}</strong></td>
                     <td>{{estacao.bicicletas}}</td>
                     <td>{{estacao.vagas}}</td>
@@ -46,8 +47,64 @@
     
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <script src="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>    
     <script type="text/javascript">
+        $(document).ready(function(){
+            var center = new google.maps.LatLng(-23.5715396,-46.6572312);
+            window.map = new google.maps.Map(document.getElementById("chart"),{
+                zoom: 12,
+                'center': center,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+            });
+        
+            var estacoes = [
+            {% for estacao in estacoes %}
+                {% if estacao.funcionando %}
+                    [{{estacao.numero}}, {{estacao.bicicletas}}, {{estacao.local}}],
+                {%- endif %}
+            {%- endfor %}   
+            ]
+
+            var markers = [];
+            for(i in estacoes){
+                var estacao = estacoes[i];
+                for(x=0;x<estacao[1];x++){
+                    markers.push(
+                        new google.maps.Marker({
+                            position: new google.maps.LatLng(estacao[2]+x*0.00004, estacao[3]+x*0.00004),
+                            title: 'Estação '+estacao[0],
+                        })
+                    )
+                }
+            }
+            new MarkerClusterer(map, markers);
+
+            $(".estacao").css("cursor", "pointer");
+            $(".estacao").click(function(){
+                var $this = $(this);
+                window.scrollTo(0,0);
+                if(!window.estacao_marker){
+                    window.estacao_marker = new google.maps.Marker();
+                }
+                if(!window.estacao_info) window.estacao_info = new google.maps.InfoWindow()
+
+                var pos = $this.attr("data-local").split(',')
+                var latlng = new google.maps.LatLng(pos[0], pos[1]);
+                estacao_marker.setPosition(latlng);
+                estacao_marker.setMap(window.map);
+
+                estacao_info.setContent("Estação: <strong>"+$this.attr("data-numero")+"</strong>"+
+                    "<br>Bicicletas disponíveis: <strong>"+$this.attr("data-bicicletas")+"</strong>"+
+                    "<br>Viagens feitas hoje: <strong>"+$this.attr("data-viagens")+"</strong>"
+                )
+                estacao_info.setPosition(latlng);
+                estacao_info.open(window.map, estacao_marker)
+
+            });
+        });
+    /*
         google.load("visualization", "1.1", {packages:["line"]});
         google.setOnLoadCallback(draw);
 
@@ -73,11 +130,12 @@
                         usos:{label: 'Usos'},
                         bicicletas:{side:'right', label:'Bicicletas'},
                     }
-                }*/
+                }
             };
             var chart = new google.charts.Line(document.getElementById('chart'));
             chart.draw(data, options);
         }
+        */
     </script>
 </body>
 <html>

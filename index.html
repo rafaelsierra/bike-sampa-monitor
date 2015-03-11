@@ -15,12 +15,18 @@
     <p><small>Última atualização: {{last_update}}</small></p>
     <div id="chart" style="width: 100%; height: 500px;"></div>
     <h1>Lista de estações</h1>
-    <table class="table table-striped table-hover">
+    <p>
+        <button class="btn btn-filtro filtro-com btn-success">Com bicicletas</button>
+        <button class="btn btn-filtro filtro-sem btn-warning">Sem bicicletas</button>
+        <button class="btn btn-filtro filtro-off btn-danger">Em manutenção</button>
+    </p>
+    <table class="table table-striped table-hover" id="estacoes">
         <thead>
             <tr>
                 <th><strong>Estação</strong></th>
                 <th>Bicicletas</th>
                 <th>Capacidade</th>
+                <th>Viagens</th>
                 <th>Nome</th>
                 <th>Endereço</th>
                 <th>Status</th>
@@ -37,6 +43,7 @@
                     <td align="right"><strong>{{estacao.numero}}</strong></td>
                     <td>{{estacao.bicicletas}}</td>
                     <td>{{estacao.vagas}}</td>
+                    <td>{{estacao.interacoes}}</td>
                     <td>{{estacao.nome}}</td>
                     <td>{{estacao.endereco}}</td>
                     <td>{{estacao.status}}</td>
@@ -52,6 +59,39 @@
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>    
     <script type="text/javascript">
         $(document).ready(function(){
+            // Aplica o filtro dos botoes
+            var botoes;
+            if(!localStorage.getItem('filtro-conf')){
+                botoes = {
+                    'filtro-com': [true, 'success'],
+                    'filtro-sem': [true, 'warning'],
+                    'filtro-off': [false, 'danger'],
+                }
+                localStorage.setItem('filtro-conf', JSON.stringify(botoes));
+            }else{
+                botoes = JSON.parse(localStorage.getItem('filtro-conf'));
+            }
+            for(botao in botoes){
+                if(botoes[botao][0]){
+                    $("."+botao).addClass('active');
+                }else{
+                    $("#estacoes tr."+botoes[botao][1]).hide();
+                }
+            }
+
+            $('.btn-filtro').click(function(){
+                var $this = $(this);
+                for(i in botoes){
+                    if($this.hasClass(i)){
+                        console.log(i)
+                        botoes[i][0] = !botoes[i][0]
+                        $this.toggleClass('active');
+                        $("#estacoes tr."+botoes[i][1]).toggle();
+                    }
+                }
+                localStorage.setItem('filtro-conf', JSON.stringify(botoes));
+            });
+
             var center = new google.maps.LatLng(-23.5715396,-46.6572312);
             window.map = new google.maps.Map(document.getElementById("chart"),{
                 zoom: 12,
@@ -104,38 +144,6 @@
 
             });
         });
-    /*
-        google.load("visualization", "1.1", {packages:["line"]});
-        google.setOnLoadCallback(draw);
-
-        function draw(){
-            var data = new google.visualization.arrayToDataTable([
-                ['Estação', 'Usos', 'Bicicletas'],
-                {% for estacao in estacoes %}
-                    {% if estacao.funcionando %}
-                        [{{estacao.numero}}, {{estacao.interacoes}}, {{estacao.bicicletas}}],
-                    {%- endif %}
-                {%- endfor %}
-            ]);
-            var options = {
-                width: window.innerWidth*.95,
-                height: window.innerHeight*.7,
-                //bars: 'horizontal',
-                /*series:{
-                    0: {axis: 'usos'},
-                    1: {axis: 'bicicletas'},
-                },
-                axes: {
-                    y:{
-                        usos:{label: 'Usos'},
-                        bicicletas:{side:'right', label:'Bicicletas'},
-                    }
-                }
-            };
-            var chart = new google.charts.Line(document.getElementById('chart'));
-            chart.draw(data, options);
-        }
-        */
     </script>
 </body>
 <html>

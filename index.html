@@ -54,7 +54,7 @@
     
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=false"></script>
     <script src="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>    
     <script type="text/javascript">
@@ -92,6 +92,8 @@
                 localStorage.setItem('filtro-conf', JSON.stringify(botoes));
             });
 
+
+            // Plotagem do mapa
             var center = new google.maps.LatLng(-23.5715396,-46.6572312);
             window.map = new google.maps.Map(document.getElementById("chart"),{
                 zoom: 12,
@@ -102,12 +104,13 @@
             var estacoes = [
             {% for estacao in estacoes %}
                 {% if estacao.funcionando %}
-                    [{{estacao.numero}}, {{estacao.bicicletas}}, {{estacao.local}}],
+                    [{{estacao.numero}}, {{estacao.bicicletas}}, {{estacao.local}}, {{estacao.interacoes}}],
                 {%- endif %}
             {%- endfor %}   
             ]
 
             var markers = [];
+            var heatMapData = [];
             for(i in estacoes){
                 var estacao = estacoes[i];
                 for(x=0;x<estacao[1];x++){
@@ -118,9 +121,16 @@
                         })
                     )
                 }
+                heatMapData.push({
+                    location: new google.maps.LatLng(estacao[2], estacao[3]),
+                    weight: estacao[4]
+                });
             }
             new MarkerClusterer(map, markers);
-
+            new google.maps.visualization.HeatmapLayer({
+                data: heatMapData,
+                map: map
+            });
             $(".estacao").css("cursor", "pointer");
             $(".estacao").click(function(){
                 var $this = $(this);

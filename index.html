@@ -11,9 +11,12 @@
 </head>
 <body>
 
-    <h1>Mapa das estações</h1>
-    <p><small>Última atualização: {{last_update}}</small></p>
-    <div id="chart" style="width: 100%; height: 500px;"></div>
+    <h1>Mapa das estações <small style="font-size: 10px;">(Última atualização: {{last_update}})</small></h1>
+    <div class="btn-group" id="tipo-mapa" role="group">
+        <button class="btn bikes btn-xs btn-default active">Ver mapa das bicicletas</button>
+        <button class="btn viagens btn-xs btn-default">Ver mapa de calor das viagens</button>
+    </div>
+    <div id="chart" style="width: 100%; height: 500px; margin-top: 10px;"></div>
     <h1>Lista de estações</h1>
     <p>
         <button class="btn btn-filtro filtro-com btn-success">Com bicicletas</button>
@@ -92,7 +95,23 @@
                 localStorage.setItem('filtro-conf', JSON.stringify(botoes));
             });
 
+            // Visualizacao do mapa
+            $("#tipo-mapa .btn").click(function(){
+                $("#tipo-mapa .btn").toggleClass("active");
+                $this = $(this);
+                if($this.hasClass("bikes")){
+                    window.map_cluster.addMarkers(window.markers);
+                }else{
+                    window.map_cluster.removeMarkers(window.markers);
+                }
 
+                if($this.hasClass("viagens")){
+                    window.map_heat.setMap(window.map);
+                    window.map_heat.setData(window.heatMapData);
+                }else{
+                    window.map_heat.setData([]);
+                }
+            });
             // Plotagem do mapa
             var center = new google.maps.LatLng(-23.5715396,-46.6572312);
             window.map = new google.maps.Map(document.getElementById("chart"),{
@@ -109,8 +128,8 @@
             {%- endfor %}   
             ]
 
-            var markers = [];
-            var heatMapData = [];
+            window.markers = [];
+            window.heatMapData = [];
             for(i in estacoes){
                 var estacao = estacoes[i];
                 for(x=0;x<estacao[1];x++){
@@ -123,14 +142,12 @@
                 }
                 heatMapData.push({
                     location: new google.maps.LatLng(estacao[2], estacao[3]),
-                    weight: estacao[4]
+                    weight: Math.pow(estacao[4],2)
                 });
             }
-            new MarkerClusterer(map, markers);
-            new google.maps.visualization.HeatmapLayer({
-                data: heatMapData,
-                map: map
-            });
+            window.map_cluster = new MarkerClusterer(map, markers);
+            window.map_heat = new google.maps.visualization.HeatmapLayer();
+
             $(".estacao").css("cursor", "pointer");
             $(".estacao").click(function(){
                 var $this = $(this);

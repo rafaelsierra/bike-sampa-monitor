@@ -142,11 +142,14 @@
                 }
                 heatMapData.push({
                     location: new google.maps.LatLng(estacao[2], estacao[3]),
-                    weight: Math.pow(estacao[4],2)
+                    weight: Math.sqrt(estacao[4])
                 });
             }
             window.map_cluster = new MarkerClusterer(map, markers);
-            window.map_heat = new google.maps.visualization.HeatmapLayer();
+            window.map_heat = new google.maps.visualization.HeatmapLayer({
+                radius: 10,
+                opacity: 1
+            });
 
             $(".estacao").css("cursor", "pointer");
             $(".estacao").click(function(){
